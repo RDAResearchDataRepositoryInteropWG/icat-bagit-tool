@@ -38,11 +38,7 @@ customize the install process.
 
      $ python setup.py build
 
-3. Test (optional, see below)::
-
-     $ python setup.py test
-
-4. Install::
+3. Install::
 
      $ python setup.py install
 
