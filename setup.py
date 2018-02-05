@@ -28,6 +28,7 @@ setup(
     requires = ["icat", "bagit", "lxml"],
     packages = ["icat.bagit"],
     package_dir = {"icat.bagit": "src"},
+    scripts = ["scripts/icat-bagit-export.py"],
     classifiers = [
         "Programming Language :: Python",
         "Programming Language :: Python :: 2",

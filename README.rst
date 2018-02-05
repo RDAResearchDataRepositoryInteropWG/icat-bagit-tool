@@ -52,6 +52,13 @@ Bugs and limitations
 + For the time being, only the export part is implemented.  The tool
   does not support the import of BagIt packages into ICAT.
 
++ The export script only supports exporting one single investigation
+  as a whole.  It is assumed that the investigation is unambiguously
+  determind by name and visitId and furthermore that these attributes
+  do not contain a colon.  These are mostly a limitations of the
+  command line interface of the script and can easily be changed at
+  the expense of rendering this interface somewhat more complicated.
+
 
 Copyright and License
 ---------------------
