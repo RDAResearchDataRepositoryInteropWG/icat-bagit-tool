@@ -2,14 +2,14 @@
 
 import re
 from distutils.core import setup
-import bagit
+import src
 
 
-DOCLINES         = bagit.__doc__.split("\n")
+DOCLINES         = src.__doc__.split("\n")
 DESCRIPTION      = DOCLINES[0]
 LONG_DESCRIPTION = "\n".join(DOCLINES[2:])
-VERSION          = bagit.__version__
-AUTHOR           = bagit.__author__
+VERSION          = src.__version__
+AUTHOR           = src.__author__
 URL              = ("https://github.com/RDAResearchDataRepositoryInteropWG/"
                     "icat-bagit-tool")
 m = re.match(r"^(.*?)\s*<(.*)>$", AUTHOR)
@@ -27,7 +27,7 @@ setup(
     license = "Apache-2.0",
     requires = ["icat", "bagit", "lxml"],
     packages = ["icat.bagit"],
-    package_dir = {"icat.bagit": "bagit"},
+    package_dir = {"icat.bagit": "src"},
     classifiers = [
         "Programming Language :: Python",
         "Programming Language :: Python :: 2",

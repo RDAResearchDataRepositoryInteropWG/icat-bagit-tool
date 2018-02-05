@@ -9,13 +9,13 @@ sdist:
 
 
 clean:
-	rm -f *~ bagit/*~
+	rm -f *~ src/*~
 	rm -rf build
 
 distclean: clean
 	rm -f MANIFEST
-	rm -f *.pyc bagit/*.pyc
-	rm -rf __pycache__ bagit/__pycache__
+	rm -f *.pyc src/*.pyc
+	rm -rf __pycache__ src/__pycache__
 	rm -rf dist
 
 
