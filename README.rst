@@ -59,6 +59,10 @@ Bugs and limitations
   command line interface of the script and can easily be changed at
   the expense of rendering this interface somewhat more complicated.
 
++ Due to shortcomings in the ICAT schema, the metadata contained in
+  the datacite.xml file in the package is not entirely compliant to
+  the DataCite schema.
+
 
 Copyright and License
 ---------------------

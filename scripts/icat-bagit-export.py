@@ -4,7 +4,12 @@ from __future__ import print_function
 import os
 import os.path
 import logging
+import datetime
 import bagit
+try:
+    from lxml import etree
+except ImportError:
+    import xml.etree.ElementTree as etree
 import icat
 import icat.config
 from icat.query import Query
@@ -37,6 +42,7 @@ def copyfile(infile, outfile, chunksize=8192):
 
 def get_investigation(invid):
     query = Query(client, "Investigation")
+    query.addIncludes(("investigationUsers.user", "facility"))
     l = invid.split(':')
     if len(l) == 1:
         # No colon, invid == name
@@ -59,6 +65,46 @@ def get_datasets(inv):
                   aggregate="DISTINCT")
     return client.searchChunked(query)
 
+def datacite_investigation(investigation):
+    """Create `DataCite 4.0`_ bibliographic metadata from an investigation.
+
+    .. _DataCite 4.0: https://schema.datacite.org/meta/kernel-4.0/
+    """
+    datacite = etree.Element("resource")
+    identifier = etree.SubElement(datacite, "identifier")
+    identifier.set("identifierType", "DOI")
+    identifier.text = investigation.doi or "(:unas)"
+    creators = etree.SubElement(datacite, "creators")
+    for iu in investigation.investigationUsers:
+        creator = etree.SubElement(creators, "creator")
+        etree.SubElement(creator, "creatorName").text = iu.user.fullName
+        orcid = getattr(iu.user, "orcidId", None)
+        if orcid:
+            nameId = etree.SubElement(creator, "nameIdentifier")
+            nameId.set("nameIdentifierScheme", "ORCID")
+            nameId.text = oricid
+    titles = etree.SubElement(datacite, "titles")
+    etree.SubElement(titles, "title").text = investigation.title
+    publisher = etree.SubElement(datacite, "publisher")
+    publisher.text = (investigation.facility.fullName or 
+                      investigation.facility.name)
+    etree.SubElement(datacite, "publicationYear").text = "(:unav)"
+    if investigation.startDate and investigation.endDate:
+        dates = etree.SubElement(datacite, "dates")
+        date = etree.SubElement(dates, "date")
+        date.set("dateType", "Created")
+        date.text = "%s/%s" % (investigation.startDate.date().isoformat(), 
+                               investigation.endDate.date().isoformat())
+    resourceType = etree.SubElement(datacite, "resourceType")
+    resourceType.set("resourceTypeGeneral", "Dataset")
+    resourceType.text = "Dataset"
+    if investigation.summary:
+        descriptions = etree.SubElement(datacite, "descriptions")
+        description = etree.SubElement(describtions, "description")
+        description.set("descriptionType", "Abstract")
+        description.text = investigation.summary
+    return etree.ElementTree(datacite)
+
 # ------------------------------------------------------------
 # do it
 # ------------------------------------------------------------
@@ -66,7 +112,8 @@ def get_datasets(inv):
 investigation = get_investigation(conf.investigation)
 
 # FIXME: this scripts is still incomplete:
-# - must create metadata.
+# - datacite metadata still leaves room for improvement.
+# - BagIt profile support missing.
 # - data may be not online, must account for that and repeat the
 #   getData() call where neccessary.
 os.makedirs(conf.bagdir)
@@ -77,3 +124,13 @@ for dataset in get_datasets(investigation):
         copyfile(response, f)
 
 bag = bagit.make_bag(conf.bagdir)
+
+os.chdir(conf.bagdir)
+
+os.mkdir("metadata")
+datacite = datacite_investigation(investigation)
+datacite.write(os.path.join("metadata", "datacite.xml"))
+
+# recreate tagmanifest files
+for alg in bag.algorithms:
+    bagit._make_tagmanifest_file(alg, bag.path, encoding=bag.encoding)
