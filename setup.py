@@ -1,15 +1,23 @@
 #! /usr/bin/python
+"""icat-bagit-tool - Export data from ICAT into BagIt packages
+
+This tool implements the export scientific data from an `ICAT`__ into
+a BagIt package as defined by the `RDA Research Data Repository
+Interoperability WG`__.
+
+.. __: https://www.icatproject.org/
+.. __: https://rd-alliance.org/groups/research-data-repository-interoperability-wg.html
+"""
 
 import re
 from distutils.core import setup
-import src
 
 
-DOCLINES         = src.__doc__.split("\n")
+DOCLINES         = __doc__.split("\n")
 DESCRIPTION      = DOCLINES[0]
 LONG_DESCRIPTION = "\n".join(DOCLINES[2:])
-VERSION          = src.__version__
-AUTHOR           = src.__author__
+VERSION          = "0.0"
+AUTHOR           = "Rolf Krahl <rolf.krahl@helmholtz-berlin.de>"
 URL              = ("https://github.com/RDAResearchDataRepositoryInteropWG/"
                     "icat-bagit-tool")
 m = re.match(r"^(.*?)\s*<(.*)>$", AUTHOR)
@@ -26,8 +34,6 @@ setup(
     url = URL,
     license = "Apache-2.0",
     requires = ["icat", "bagit", "lxml"],
-    packages = ["icat.bagit"],
-    package_dir = {"icat.bagit": "src"},
     scripts = ["scripts/icat-bagit-export.py"],
     classifiers = [
         "Programming Language :: Python",

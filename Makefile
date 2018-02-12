@@ -9,13 +9,13 @@ sdist:
 
 
 clean:
-	rm -f *~ src/*~
+	rm -f *~
 	rm -rf build
 
 distclean: clean
 	rm -f MANIFEST
-	rm -f *.pyc src/*.pyc
-	rm -rf __pycache__ src/__pycache__
+	rm -f *.pyc
+	rm -rf __pycache__
 	rm -rf dist
 
 
