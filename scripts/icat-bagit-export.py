@@ -6,8 +6,10 @@ import os.path
 import logging
 import datetime
 import bagit
+_have_lxml = None
 try:
     from lxml import etree
+    _have_lxml = True
 except ImportError:
     import xml.etree.ElementTree as etree
 import icat
@@ -129,7 +131,10 @@ os.chdir(conf.bagdir)
 
 os.mkdir("metadata")
 datacite = datacite_investigation(investigation)
-datacite.write(os.path.join("metadata", "datacite.xml"))
+if _have_lxml:
+    datacite.write(os.path.join("metadata", "datacite.xml"),  pretty_print=True)
+else:
+    datacite.write(os.path.join("metadata", "datacite.xml"))
 
 # recreate tagmanifest files
 for alg in bag.algorithms:
