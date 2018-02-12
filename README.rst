@@ -15,13 +15,15 @@ Python:
 
 + Python 2.7, or 3.2 and newer.
 
-Required Library packages:
+Required library packages:
 
 + `python-icat`_
 
 + `bagit`_
 
 + `lxml`_
+  (optional, will fall back on `xml.etree.ElementTree` from the
+  standard library if not available.)
 
 
 Installation
