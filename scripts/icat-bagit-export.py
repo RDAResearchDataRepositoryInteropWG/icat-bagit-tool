@@ -4,6 +4,7 @@ from __future__ import print_function
 import os
 import os.path
 import logging
+import time
 import datetime
 import bagit
 _have_lxml = None
@@ -107,35 +108,49 @@ def datacite_investigation(investigation):
         description.text = investigation.summary
     return etree.ElementTree(datacite)
 
+def download_data(destdir, investigation):
+    os.makedirs(destdir)
+    datasets = get_datasets(investigation)
+    while True:
+        backlog = []
+        for dataset in datasets:
+            try:
+                outputfile = os.path.join(destdir, dataset.name + ".zip")
+                response = client.getData([dataset])
+                with open(outputfile, 'wb') as f:
+                    copyfile(response, f)
+            except icat.IDSDataNotOnlineError:
+                backlog.append(dataset)
+        if backlog:
+            datasets = backlog
+            time.sleep(10)
+        else:
+            break
+
+def add_metadata(bag, investigation):
+    os.chdir(bag.path)
+
+    os.mkdir("metadata")
+    fname = os.path.join("metadata", "datacite.xml")
+    datacite = datacite_investigation(investigation)
+    if _have_lxml:
+        datacite.write(fname,  pretty_print=True)
+    else:
+        datacite.write(fname)
+
+    # recreate tagmanifest files
+    for alg in bag.algorithms:
+        bagit._make_tagmanifest_file(alg, bag.path, encoding=bag.encoding)
+
 # ------------------------------------------------------------
 # do it
 # ------------------------------------------------------------
 
-investigation = get_investigation(conf.investigation)
-
 # FIXME: this scripts is still incomplete:
 # - datacite metadata still leaves room for improvement.
 # - BagIt profile support missing.
-# - data may be not online, must account for that and repeat the
-#   getData() call where neccessary.
-os.makedirs(conf.bagdir)
-for dataset in get_datasets(investigation):
-    outputfile = os.path.join(conf.bagdir, dataset.name + ".zip")
-    response = client.getData([dataset])
-    with open(outputfile, 'wb') as f:
-        copyfile(response, f)
 
+investigation = get_investigation(conf.investigation)
+download_data(conf.bagdir, investigation)
 bag = bagit.make_bag(conf.bagdir)
-
-os.chdir(conf.bagdir)
-
-os.mkdir("metadata")
-datacite = datacite_investigation(investigation)
-if _have_lxml:
-    datacite.write(os.path.join("metadata", "datacite.xml"),  pretty_print=True)
-else:
-    datacite.write(os.path.join("metadata", "datacite.xml"))
-
-# recreate tagmanifest files
-for alg in bag.algorithms:
-    bagit._make_tagmanifest_file(alg, bag.path, encoding=bag.encoding)
+add_metadata(bag, investigation)
