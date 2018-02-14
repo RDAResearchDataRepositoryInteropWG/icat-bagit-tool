@@ -6,6 +6,7 @@ import os.path
 import logging
 import time
 import datetime
+import re
 import bagit
 _have_lxml = None
 try:
@@ -19,6 +20,19 @@ from icat.query import Query
 
 logging.basicConfig(level=logging.INFO)
 
+def contact(s):
+    """Parse the contact configuration variable.
+    """
+    contactRE = re.compile(r"""^
+        (?:(?:(?P<name>.*?)\s+)?(?P<b><))?
+        (?P<mail>[a-zA-Z0-9.+-]+@[a-zA-Z0-9.+-]+)
+        (?(b)>|)
+    $""", re.X | re.A)
+    m = contactRE.match(s)
+    if not m:
+        raise ValueError()
+    return (m.group("name"), m.group("mail"))
+
 config = icat.config.Config(ids="mandatory")
 config.add_variable('bagdir', ("--bagdir",), 
                     dict(help="directory name of the bag to create"),
@@ -29,6 +43,15 @@ config.add_variable('altid_name', ("--altid-name",),
 config.add_variable('altid_format', ("--altid-format",), 
                     dict(help="format string to build the "
                          "alternate identifier"), optional=True)
+config.add_variable('contact', ("--contact",), 
+                    dict(help="person or entity responsible for the transfer"),
+                    type=contact)
+config.add_variable('description', ("--description",), 
+                    dict(help="brief explanation of the contents and "
+                         "provenance"), optional=True)
+config.add_variable('source_organization', ("--source-organization",), 
+                    dict(help="organization transferring the content"), 
+                    optional=True)
 config.add_variable('rights_text', ("--rights-text",), 
                     dict(help="rights information"), optional=True)
 config.add_variable('rights_uri', ("--rights-uri",), 
@@ -219,7 +242,37 @@ def download_data(destdir, investigation):
             time.sleep(10)
         else:
             break
-    return size
+    return MemorySpace(size)
+
+def get_baginfo(investigation, conf, size):
+    """Return a dict with metadata to put into the bag info.
+    """
+    org = (conf.source_organization or 
+           investigation.facility.fullName or investigation.facility.name)
+    desc = (conf.description or 
+            ("Data colleced from measurements at %s." 
+             % investigation.facility.name))
+    if conf.altid_name and conf.altid_format:
+        srcid = conf.altid_format % entity_as_dict(investigation)
+    else:
+        srcid = None
+    profile = ("https://raw.githubusercontent.com/"
+               "RDAResearchDataRepositoryInteropWG/bagit-profiles/"
+               "master/generic/0.1/profile.json")
+
+    baginfo = {}
+    baginfo["Source-Organization"] = org
+    if conf.contact[0]:
+        baginfo["Contact-Name"] = conf.contact[0]
+    baginfo["Contact-Email"] = conf.contact[1]
+    if investigation.doi:
+        baginfo["External-Identifier"] = investigation.doi
+    baginfo["External-Description"] = desc
+    baginfo["Bag-Size"] = str(size)
+    if srcid:
+        baginfo["Source-Identifier"] = srcid
+    baginfo["BagIt-Profile-Identifier"] = profile
+    return baginfo
 
 def add_metadata(bag, investigation, conf, size):
     os.chdir(bag.path)
@@ -240,10 +293,8 @@ def add_metadata(bag, investigation, conf, size):
 # do it
 # ------------------------------------------------------------
 
-# FIXME: this scripts is still incomplete:
-# - BagIt profile support missing.
-
 investigation = get_investigation(conf.investigation)
 size = download_data(conf.bagdir, investigation)
-bag = bagit.make_bag(conf.bagdir)
-add_metadata(bag, investigation, conf, MemorySpace(size))
+baginfo = get_baginfo(investigation, conf, size)
+bag = bagit.make_bag(conf.bagdir, bag_info=baginfo)
+add_metadata(bag, investigation, conf, size)
