@@ -20,6 +20,16 @@ from icat.query import Query
 
 logging.basicConfig(level=logging.INFO)
 
+def checksums(s):
+    """Parse the checksums configuration variable.
+    """
+    algs = set(s.split(','))
+    for a in algs:
+        if not a in bagit.CHECKSUM_ALGOS:
+            raise ValueError()
+    algs.add("sha256")
+    return algs
+
 def contact(s):
     """Parse the contact configuration variable.
     """
@@ -37,6 +47,9 @@ config = icat.config.Config(ids="mandatory")
 config.add_variable('bagdir', ("--bagdir",), 
                     dict(help="directory name of the bag to create"),
                     default="./icat-export", type=os.path.abspath)
+config.add_variable('checksums', ("--checksums",), 
+                    dict(help="checksum algorithms"),
+                    type=checksums, default="sha256,sha512")
 config.add_variable('altid_name', ("--altid-name",), 
                     dict(help="name of an alternate identifier"),
                     optional=True)
@@ -296,5 +309,5 @@ def add_metadata(bag, investigation, conf, size):
 investigation = get_investigation(conf.investigation)
 size = download_data(conf.bagdir, investigation)
 baginfo = get_baginfo(investigation, conf, size)
-bag = bagit.make_bag(conf.bagdir, bag_info=baginfo)
+bag = bagit.make_bag(conf.bagdir, bag_info=baginfo, checksums=conf.checksums)
 add_metadata(bag, investigation, conf, size)
