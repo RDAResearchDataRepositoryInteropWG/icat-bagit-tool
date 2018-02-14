@@ -61,9 +61,20 @@ Bugs and limitations
   command line interface of the script and can easily be changed at
   the expense of rendering this interface somewhat more complicated.
 
++ The package is exported as one single dataset, even though the
+  investigation may comprise many datasets in the ICAT schema.  Export
+  as a collection of individual datasets is currently not supported.
+
 + Due to shortcomings in the ICAT schema, the metadata contained in
   the datacite.xml file in the package is not entirely compliant to
-  the DataCite schema.
+  the DataCite schema (e.g. format of names).  Furthermore object
+  attributes from the ICAT schema are mapped onto DataCite properties,
+  although the semantics of those attributes and properties does not
+  always match.  For instance, users related to the investigation in
+  ICAT are denominated creator of the dataset in the DataCite
+  metadata, which may or may not be correct.
+
++ Documentation is entirely missing.
 
 
 Copyright and License
