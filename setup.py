@@ -16,7 +16,7 @@ from distutils.core import setup
 DOCLINES         = __doc__.split("\n")
 DESCRIPTION      = DOCLINES[0]
 LONG_DESCRIPTION = "\n".join(DOCLINES[2:])
-VERSION          = "1.0"
+VERSION          = "1.1"
 AUTHOR           = "Rolf Krahl <rolf.krahl@helmholtz-berlin.de>"
 URL              = ("https://github.com/RDAResearchDataRepositoryInteropWG/"
                     "icat-bagit-tool")

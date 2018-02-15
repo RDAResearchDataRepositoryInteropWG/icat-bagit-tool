@@ -1,5 +1,5 @@
 Name:		icat-bagit-tool
-Version:	1.0
+Version:	1.1
 Release:	1
 Summary:	Export data from ICAT into BagIt packages
 License:	Apache-2.0
