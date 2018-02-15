@@ -58,7 +58,7 @@ config.add_variable('altid_format', ("--altid-format",),
                          "alternate identifier"), optional=True)
 config.add_variable('contact', ("--contact",), 
                     dict(help="person or entity responsible for the transfer"),
-                    type=contact)
+                    type=contact, optional=True)
 config.add_variable('description', ("--description",), 
                     dict(help="brief explanation of the contents and "
                          "provenance"), optional=True)
@@ -169,6 +169,19 @@ def get_datasets(inv):
                   aggregate="DISTINCT")
     return client.searchChunked(query)
 
+def get_current_user():
+    """Get the current ICAT user as fallback for contact.
+    """
+    query = Query(client, "User", conditions={
+        "name": "= '%s'" % client.getUserName(),
+        "email": "IS NOT NULL",
+    })
+    try:
+        me = client.assertedSearch(query)[0]
+        return (me.fullName, me.email)
+    except icat.SearchResultError:
+        return None
+
 def datacite_investigation(investigation, conf, size):
     """Create `DataCite 4.0`_ bibliographic metadata from an investigation.
 
@@ -262,6 +275,9 @@ def get_baginfo(investigation, conf, size):
     """
     org = (conf.source_organization or 
            investigation.facility.fullName or investigation.facility.name)
+    contact = conf.contact or get_current_user()
+    if not contact:
+        raise icat.ConfigError("'contact' not provided.")
     desc = (conf.description or 
             ("Data colleced from measurements at %s." 
              % investigation.facility.name))
@@ -275,9 +291,9 @@ def get_baginfo(investigation, conf, size):
 
     baginfo = {}
     baginfo["Source-Organization"] = org
-    if conf.contact[0]:
-        baginfo["Contact-Name"] = conf.contact[0]
-    baginfo["Contact-Email"] = conf.contact[1]
+    if contact[0]:
+        baginfo["Contact-Name"] = contact[0]
+    baginfo["Contact-Email"] = contact[1]
     if investigation.doi:
         baginfo["External-Identifier"] = investigation.doi
     baginfo["External-Description"] = desc
