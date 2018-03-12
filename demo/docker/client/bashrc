@@ -1,0 +1,6 @@
+unalias -a
+
+export PATH=$HOME/bin:/usr/local/bin:/usr/bin:/bin
+
+alias la='env LC_COLLATE=C ls -la $LS_OPTIONS'
+alias ll='env LC_COLLATE=C ls -l $LS_OPTIONS'
