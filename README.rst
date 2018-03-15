@@ -54,12 +54,22 @@ Bugs and limitations
 + For the time being, only the export part is implemented.  The tool
   does not support the import of BagIt packages into ICAT.
 
-+ The export script only supports exporting one single investigation
-  as a whole.  It is assumed that the investigation is unambiguously
++ The data in the ICAT is arranged in terms of investigations,
+  datasets, and datafiles.  The investigation is a central entity in
+  the ICAT schema.  An investigation may be composed of any number of
+  datasets, which in turn may contain any number of datafiles.  The
+  export script only supports exporting one single investigation as a
+  whole.  It is assumed that the investigation is unambiguously
   determind by name and visitId and furthermore that these attributes
   do not contain a colon.  These are mostly a limitations of the
   command line interface of the script and can easily be changed at
   the expense of rendering this interface somewhat more complicated.
+
++ The export script puts a zip file per dataset in the payload
+  directory of the package.  It probably should rather create
+  subdirectories per dataset with the corresponding datafiles instead.
+  Even better, it should have a command line switch to control this
+  behavior.
 
 + The package is exported as one single dataset, even though the
   investigation may comprise many datasets in the ICAT schema.  Export
@@ -73,6 +83,8 @@ Bugs and limitations
   always match.  For instance, users related to the investigation in
   ICAT are denominated creator of the dataset in the DataCite
   metadata, which may or may not be correct.
+
++ Serialization of the exported package should be supported.
 
 + Documentation is entirely missing.
 
